@@ -35,3 +35,4 @@ src/main/resources/application.yml
 *.zip
 *.tar.gz
 *.rar
+src/test/resources/application.yml
