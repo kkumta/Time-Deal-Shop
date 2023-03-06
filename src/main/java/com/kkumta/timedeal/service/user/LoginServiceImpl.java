@@ -4,6 +4,7 @@ import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
+import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import com.kkumta.timedeal.exception.user.UserNotFoundException;
 import java.util.Optional;
 import javax.servlet.http.HttpSession;
@@ -39,5 +40,17 @@ public class LoginServiceImpl implements LoginService {
         // 로그인 정보가 정상적일 경우 로그인을 한다
         httpSession.setAttribute("NAME", user.get().getName());
         httpSession.setAttribute("TYPE", user.get().getUserType());
+    }
+    
+    public void logout() {
+        
+        // 세션에 로그인 정보가 없을 경우
+        if (httpSession.getAttribute("NAME") == null || httpSession.getAttribute("TYPE") == null) {
+            throw new LoginInfoNotFoundException();
+        }
+        
+        // 로그아웃을 한다
+        httpSession.removeAttribute("NAME");
+        httpSession.removeAttribute("TYPE");
     }
 }
