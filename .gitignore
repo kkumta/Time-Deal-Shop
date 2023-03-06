@@ -36,4 +36,4 @@ src/main/resources/application.yml
 *.tar.gz
 *.rar
 src/test/resources/application.yml
-logs/logback.log
+logs/*
