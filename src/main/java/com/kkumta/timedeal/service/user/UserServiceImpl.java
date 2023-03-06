@@ -5,7 +5,6 @@ import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
 import com.kkumta.timedeal.exception.user.ValidateUniqueEmailException;
 import com.kkumta.timedeal.exception.user.ValidateUniqueNameException;
-import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
