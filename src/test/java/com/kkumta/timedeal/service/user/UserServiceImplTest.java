@@ -1,4 +1,4 @@
-package com.kkumta.timedeal.service;
+package com.kkumta.timedeal.service.user;
 
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;

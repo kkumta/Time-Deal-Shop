@@ -1,4 +1,4 @@
-package com.kkumta.timedeal.service;
+package com.kkumta.timedeal.service.user;
 
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
@@ -6,8 +6,6 @@ import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import com.kkumta.timedeal.exception.user.UserNotFoundException;
-import com.kkumta.timedeal.service.user.LoginService;
-import com.kkumta.timedeal.service.user.UserService;
 import javax.servlet.http.HttpSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
