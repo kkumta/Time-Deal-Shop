@@ -30,7 +30,7 @@ class UserServiceImplTest {
     @DisplayName("중복 name 검증")
     void validateUniqueName() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
@@ -43,7 +43,7 @@ class UserServiceImplTest {
     @DisplayName("중복 email 검증")
     void validateUniqueEmail() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
@@ -57,7 +57,7 @@ class UserServiceImplTest {
     void signUpFail() {
         // name 길이
         RequestSignUpDto requestDto1 = new RequestSignUpDto("n", "test@test.com",
-                                                            "testtest123", "admin",
+                                                            "testtest123", "ADMIN",
                                                             "01000000000", "객체지향도 Java시 Spring동");
         Assertions.assertThrows(TransactionSystemException.class, () -> {
             userService.signUp(requestDto1);
@@ -65,7 +65,7 @@ class UserServiceImplTest {
         
         RequestSignUpDto requestDto2 = new RequestSignUpDto("namenamenamenamenamen",
                                                             "test@test.com",
-                                                            "testtest123", "admin",
+                                                            "testtest123", "ADMIN",
                                                             "01000000000", "객체지향도 Java시 Spring동");
         Assertions.assertThrows(TransactionSystemException.class, () -> {
             userService.signUp(requestDto2);
@@ -73,7 +73,7 @@ class UserServiceImplTest {
         
         // email 길이
         RequestSignUpDto requestDto3 = new RequestSignUpDto("name", "t@c.",
-                                                            "testtest123", "admin",
+                                                            "testtest123", "ADMIN",
                                                             "01000000000", "객체지향도 Java시 Spring동");
         Assertions.assertThrows(TransactionSystemException.class, () -> {
             userService.signUp(requestDto3);
@@ -81,7 +81,7 @@ class UserServiceImplTest {
         
         RequestSignUpDto requestDto4 = new RequestSignUpDto("name",
                                                             "testtesttesttesttesttesttesttesttesttest@testtest.com",
-                                                            "testtest123", "admin",
+                                                            "testtest123", "ADMIN",
                                                             "01000000000", "객체지향도 Java시 Spring동");
         Assertions.assertThrows(TransactionSystemException.class, () -> {
             userService.signUp(requestDto4);
@@ -89,7 +89,7 @@ class UserServiceImplTest {
         
         // password 길이
         RequestSignUpDto requestDto5 = new RequestSignUpDto("name", "test@test.com",
-                                                            "pass", "admin",
+                                                            "pass", "ADMIN",
                                                             "01000000000", "객체지향도 Java시 Spring동");
         Assertions.assertThrows(TransactionSystemException.class, () -> {
             userService.signUp(requestDto5);
@@ -97,7 +97,7 @@ class UserServiceImplTest {
         
         RequestSignUpDto requestDto6 = new RequestSignUpDto("name", "test@test.com",
                                                             "passwordpasswordpasswordpasswordpasswordpasswordpassword",
-                                                            "admin",
+                                                            "ADMIN",
                                                             "01000000000", "객체지향도 Java시 Spring동");
         Assertions.assertThrows(TransactionSystemException.class, () -> {
             userService.signUp(requestDto6);
@@ -108,7 +108,7 @@ class UserServiceImplTest {
     @DisplayName("회원가입_성공")
     void signUpSuccess() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         User user = userRepository.findById(userService.signUp(requestSignUpDto)).get();
