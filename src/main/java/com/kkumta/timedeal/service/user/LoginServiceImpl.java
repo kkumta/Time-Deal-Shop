@@ -39,7 +39,7 @@ public class LoginServiceImpl implements LoginService {
         
         // 로그인 정보가 정상적일 경우 로그인을 한다
         httpSession.setAttribute("NAME", user.get().getName());
-        httpSession.setAttribute("TYPE", user.get().getUserType());
+        httpSession.setAttribute("TYPE", user.get().getType().name());
     }
     
     public void logout() {

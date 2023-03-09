@@ -13,7 +13,7 @@ public class RequestSignUpDto {
     
     private String password;
     
-    private String userType;
+    private String type;
     
     private String phoneNumber;
     

@@ -40,21 +40,21 @@ class LoginServiceImplTest {
     @DisplayName("로그인_성공")
     void loginSuccess() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
         RequestLoginDto requestDto = new RequestLoginDto("test@test.com", "testtest123");
         loginService.login(requestDto);
         Assertions.assertEquals(requestSignUpDto.getName(), httpSession.getAttribute("NAME"));
-        Assertions.assertEquals(requestSignUpDto.getUserType(), httpSession.getAttribute("TYPE"));
+        Assertions.assertEquals(requestSignUpDto.getType(), httpSession.getAttribute("TYPE"));
     }
     
     @Test
     @DisplayName("로그인_실패_없는_ID")
     void loginFailWithId() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
@@ -68,7 +68,7 @@ class LoginServiceImplTest {
     @DisplayName("로그인_실패_틀린_비밀번호")
     void loginFailWithPassword() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
@@ -82,7 +82,7 @@ class LoginServiceImplTest {
     @DisplayName("로그아웃_성공")
     void logoutSuccess() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
@@ -97,7 +97,7 @@ class LoginServiceImplTest {
     @DisplayName("로그아웃_실패_세션에_NAME_없음")
     void logoutFailWithName() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
@@ -113,7 +113,7 @@ class LoginServiceImplTest {
     @DisplayName("로그아웃_실패_세션에_TYPE_없음")
     void logoutFailWithType() {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "admin",
+                                                                 "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         userService.signUp(requestSignUpDto);
