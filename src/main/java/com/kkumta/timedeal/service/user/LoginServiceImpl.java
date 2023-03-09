@@ -34,7 +34,7 @@ public class LoginServiceImpl implements LoginService {
         
         // 이메일에 해당되는 비밀번호가 입력되지 않았을 경우
         if (!user.get().getPassword().equals(password)) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException("ADMIN 권한으로 로그인되지 않았습니다.");
         }
         
         // 로그인 정보가 정상적일 경우 로그인을 한다

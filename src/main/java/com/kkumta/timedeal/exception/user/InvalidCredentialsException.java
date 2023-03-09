@@ -1,5 +1,11 @@
 package com.kkumta.timedeal.exception.user;
 
-public class InvalidCredentialsException extends IllegalArgumentException {
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
+public class InvalidCredentialsException extends RuntimeException {
+    
+    public InvalidCredentialsException(String message) {
+        super(message);
+    }
 }
