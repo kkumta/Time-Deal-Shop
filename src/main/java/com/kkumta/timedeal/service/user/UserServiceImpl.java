@@ -3,9 +3,9 @@ package com.kkumta.timedeal.service.user;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
+import com.kkumta.timedeal.domain.UserType;
 import com.kkumta.timedeal.exception.user.ValidateUniqueEmailException;
 import com.kkumta.timedeal.exception.user.ValidateUniqueNameException;
-import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,12 +42,13 @@ public class UserServiceImpl implements UserService {
         if (!validateUniqueEmail(requestSignUpDto.getEmail())) {
             throw new ValidateUniqueEmailException();
         }
+        UserType.find(requestSignUpDto.getType());
         
         User user = User.builder()
             .name(requestSignUpDto.getName())
             .email(requestSignUpDto.getEmail())
             .password(requestSignUpDto.getPassword())
-            .userType(requestSignUpDto.getUserType())
+            .type(UserType.valueOf(requestSignUpDto.getType()))
             .phoneNumber(requestSignUpDto.getPhoneNumber())
             .address(requestSignUpDto.getAddress())
             .build();
