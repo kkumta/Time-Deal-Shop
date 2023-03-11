@@ -1,7 +1,6 @@
 package com.kkumta.timedeal.service.product;
 
-import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
-import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
+import com.kkumta.timedeal.api.dto.product.*;
 import com.kkumta.timedeal.domain.Product;
 import com.kkumta.timedeal.domain.ProductRepository;
 import com.kkumta.timedeal.domain.User;
@@ -11,6 +10,7 @@ import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import javax.servlet.http.HttpSession;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,8 +40,7 @@ public class ProductServiceImpl implements ProductService {
         }
         
         if (requestDto.getCloseDate().minusMinutes(10).isBefore(requestDto.getOpenDate())) {
-            throw new ProductException(
-                "CloseDate는 OpenDate보다 10분 이상 뒤여야 합니다. 즉, 상품이 오픈된 상태로 10분 이상 유지될 수 있어야 합니다.");
+            throw new InvalidDateException();
         }
         
         User seller = userRepository.findByName(userName.toString())
@@ -82,11 +81,17 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductDeletedException();
         }
         
-        return new ResponseProductDto(product.getSeller().getName(), product.getName(),
-                                      product.getPrice(), product.getExplanation(),
-                                      product.getQuantity(),
-                                      product.getMaximumPurchaseQuantity(), product.getOpenDate(),
-                                      product.getCloseDate(), product.getIsSellingPaused());
+        return ResponseProductDto.builder()
+            .sellerName(product.getSeller().getName())
+            .productName(product.getName())
+            .price(product.getPrice())
+            .explanation(product.getExplanation())
+            .quantity(product.getQuantity())
+            .maximumPurchaseQuantity(product.getMaximumPurchaseQuantity())
+            .openDate(product.getOpenDate())
+            .closeDate(product.getCloseDate())
+            .isSellingPaused(product.getIsSellingPaused())
+            .build();
     }
     
     @Override
@@ -108,5 +113,46 @@ public class ProductServiceImpl implements ProductService {
         }
         
         product.delete();
+    }
+    
+    @Override
+    @Transactional
+    public ResponseProductDto updateProduct(Long productId, RequestUpdateProductDto requestDto)
+        throws ProductException {
+        String sessionUserName = httpSession.getAttribute("NAME").toString();
+        
+        User seller = productRepository.findById(productId).get().getSeller();
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ProductNotFoundException());
+        
+        if (!sessionUserName.equals(seller.getName())) {
+            throw new SellerMismatchException();
+        }
+        
+        if (product.getIsDeleted()) {
+            throw new ProductDeletedException();
+        }
+        
+        if (requestDto.getCloseDate().minusMinutes(10).isBefore(requestDto.getOpenDate())) {
+            throw new InvalidDateException();
+        }
+        
+        product.update(requestDto.getName(), requestDto.getPrice(), requestDto.getExplanation(),
+                       requestDto.getQuantity(), requestDto.getMaximumPurchaseQuantity(),
+                       requestDto.getOpenDate(), requestDto.getCloseDate(),
+                       requestDto.getIsSellingPaused());
+        
+        return ResponseProductDto.builder()
+            .sellerName(product.getSeller().getName())
+            .productName(product.getName())
+            .price(product.getPrice())
+            .explanation(product.getExplanation())
+            .quantity(product.getQuantity())
+            .maximumPurchaseQuantity(product.getMaximumPurchaseQuantity())
+            .openDate(product.getOpenDate())
+            .closeDate(product.getCloseDate())
+            .isSellingPaused(product.getIsSellingPaused())
+            .build();
     }
 }
