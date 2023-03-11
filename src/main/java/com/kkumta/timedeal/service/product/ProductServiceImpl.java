@@ -1,10 +1,13 @@
 package com.kkumta.timedeal.service.product;
 
 import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
+import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
 import com.kkumta.timedeal.domain.Product;
 import com.kkumta.timedeal.domain.ProductRepository;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
+import com.kkumta.timedeal.domain.UserType;
+import com.kkumta.timedeal.exception.product.ProductNotFoundException;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import javax.servlet.http.HttpSession;
@@ -56,5 +59,33 @@ public class ProductServiceImpl implements ProductService {
             .build();
         
         return productRepository.save(product).getId();
+    }
+    
+    @Override
+    public ResponseProductDto getProductInfo(Long id) {
+        Object userName = httpSession.getAttribute("NAME");
+        Object userType = httpSession.getAttribute("TYPE");
+        
+        // 계정 정보 확인
+        if (userName == null || userType == null) {
+            throw new LoginInfoNotFoundException();
+        } else if (userRepository.findByName(userName.toString()).isEmpty()) {
+            throw new RuntimeException("계정 이름이 유효하지 않습니다.");
+        } else {
+            UserType.find(userType.toString());
+        }
+        
+        // 상품 정보 확인
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ProductNotFoundException());
+        if (product.getIsDeleted()) {
+            new RuntimeException("삭제된 상품입니다.");
+        }
+        
+        return new ResponseProductDto(product.getSeller().getName(), product.getName(),
+                                      product.getPrice(), product.getExplanation(),
+                                      product.getQuantity(),
+                                      product.getMaximumPurchaseQuantity(), product.getOpenDate(),
+                                      product.getCloseDate(), product.getIsSellingPaused());
     }
 }
