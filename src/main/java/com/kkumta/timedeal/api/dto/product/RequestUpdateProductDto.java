@@ -8,7 +8,7 @@ import lombok.Getter;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Getter
-public class RequestAddProductDto {
+public class RequestUpdateProductDto {
     
     @NotBlank
     @Size(min = 2, max = 30)
@@ -44,10 +44,14 @@ public class RequestAddProductDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime closeDate;
     
+    @NotNull
+    private Boolean isSellingPaused;
+    
     @Builder
-    public RequestAddProductDto(String name, Long price, String explanation, Long quantity,
-                                Long maximumPurchaseQuantity, LocalDateTime openDate,
-                                LocalDateTime closeDate) {
+    public RequestUpdateProductDto(String name, Long price, String explanation,
+                                   Long quantity,
+                                   Long maximumPurchaseQuantity, LocalDateTime openDate,
+                                   LocalDateTime closeDate, Boolean isSellingPaused) {
         this.name = name;
         this.price = price;
         this.explanation = explanation;
@@ -55,5 +59,6 @@ public class RequestAddProductDto {
         this.maximumPurchaseQuantity = maximumPurchaseQuantity;
         this.openDate = openDate;
         this.closeDate = closeDate;
+        this.isSellingPaused = isSellingPaused;
     }
 }

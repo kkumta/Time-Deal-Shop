@@ -1,6 +1,7 @@
 package com.kkumta.timedeal.api;
 
 import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
+import com.kkumta.timedeal.api.dto.product.RequestUpdateProductDto;
 import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
 import com.kkumta.timedeal.exception.product.ProductException;
 import com.kkumta.timedeal.service.product.ProductService;
@@ -34,5 +35,13 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) throws ProductException {
         productService.deleteProduct(id);
         return ResponseEntity.ok().build();
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseProductDto> updateProduct(@PathVariable Long id,
+                                                            @Valid @RequestBody
+                                                            RequestUpdateProductDto requestDto)
+        throws ProductException {
+        return ResponseEntity.ok(productService.updateProduct(id, requestDto));
     }
 }
