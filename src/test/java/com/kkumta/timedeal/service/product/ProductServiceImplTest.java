@@ -44,6 +44,10 @@ class ProductServiceImplTest {
     @Autowired
     private HttpSession session;
     
+    final LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    final LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+        .plusMinutes(10);
+    
     @AfterEach
     void clear() {
         productRepository.deleteAll();
@@ -58,9 +62,6 @@ class ProductServiceImplTest {
                                                       "01000000000",
                                                       "객체지향도 Java시 Spring동"));
         loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
         RequestAddProductDto requestDto = new RequestAddProductDto(
             "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
             closeDate);
@@ -79,12 +80,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 조회 성공")
     void getProductInfoSuccess() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         
         ResponseProductDto responseDto = productService.getProductInfo(productId);
@@ -103,12 +108,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션 정보 없음")
     void getProductInfoFailWithSessionInfo() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         session.removeAttribute("NAME");
         session.removeAttribute("TYPE");
@@ -120,12 +129,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션의 NAME Attribute 유효하지 않음")
     void getProductInfoFailWithWrongName() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         session.setAttribute("NAME", "wrong name");
         Assertions.assertThrows(RuntimeException.class, () -> {
@@ -136,12 +149,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션의 TYPE Attribute 유효하지 않음")
     void getProductInfoFailWithWrongType() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         session.setAttribute("TYPE", "CUSTOMER");
         Assertions.assertThrows(RuntimeException.class, () -> {
@@ -152,12 +169,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 조회 실패 - 존재하지 않는 상품")
     void getProductInfoFailWithWrongId() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         Assertions.assertThrows(ProductNotFoundException.class, () -> {
             productService.getProductInfo(productId + 1);
@@ -167,12 +188,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 조회 실패 - 삭제된 상품")
     void getProductInfoFailWithDeletedProduct() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         productRepository.deleteById(productId);
         Assertions.assertThrows(ProductNotFoundException.class, () -> {
@@ -183,12 +208,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 삭제 성공")
     void deleteProductSuccess() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         productService.deleteProduct(productId);
         Assertions.assertThrows(ProductDeletedException.class, () -> {
@@ -199,12 +228,16 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 개별 삭제 실패 - 판매자가 로그인하지 않음")
     void deleteProductFailWithSellerMismatch() throws ProductException {
-        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-            .plusMinutes(10);
-        RequestAddProductDto requestDto = new RequestAddProductDto(
-            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
-            closeDate);
+        RequestAddProductDto requestDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
         Long productId = addProduct(requestDto);
         
         User newUser = createUser(new RequestSignUpDto("test2 name", "test2@test.com",
@@ -219,13 +252,81 @@ class ProductServiceImplTest {
         });
     }
     
+    @Test
+    @DisplayName("상품 개별 수정 성공")
+    void updateProduct() throws ProductException {
+        RequestAddProductDto requestAddDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
+        Long productId = addProduct(requestAddDto);
+        
+        RequestUpdateProductDto requestUpdateDto =
+            RequestUpdateProductDto.builder()
+                .name("real product")
+                .price(200000L)
+                .explanation("real explanation!")
+                .quantity(30L)
+                .maximumPurchaseQuantity(2L)
+                .openDate(openDate.plusMinutes(30))
+                .closeDate(closeDate.plusMinutes(30))
+                .isSellingPaused(true)
+                .build();
+        productService.updateProduct(productId, requestUpdateDto);
+        ResponseProductDto responseDto = productService.getProductInfo(productId);
+        
+        Assertions.assertEquals(responseDto.getProductName(), requestUpdateDto.getName());
+        Assertions.assertEquals(responseDto.getPrice(), requestUpdateDto.getPrice());
+        Assertions.assertEquals(responseDto.getExplanation(), requestUpdateDto.getExplanation());
+        Assertions.assertEquals(responseDto.getQuantity(), requestUpdateDto.getQuantity());
+        Assertions.assertEquals(responseDto.getMaximumPurchaseQuantity(),
+                                requestUpdateDto.getMaximumPurchaseQuantity());
+        Assertions.assertEquals(responseDto.getOpenDate(), requestUpdateDto.getOpenDate());
+        Assertions.assertEquals(responseDto.getCloseDate(), requestUpdateDto.getCloseDate());
+        Assertions.assertEquals(true, requestUpdateDto.getIsSellingPaused());
+    }
+    
+    @Test
+    @DisplayName("상품 개별 수정 실패 - InvalidDate")
+    void updateProductFail() throws ProductException {
+        RequestAddProductDto requestAddDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(100L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
+        Long productId = addProduct(requestAddDto);
+        
+        RequestUpdateProductDto requestUpdateDto =
+            RequestUpdateProductDto.builder()
+                .name("real product")
+                .price(200000L)
+                .explanation("real explanation!")
+                .quantity(30L)
+                .maximumPurchaseQuantity(2L)
+                .openDate(openDate.plusMinutes(5))
+                .closeDate(closeDate)
+                .isSellingPaused(true)
+                .build();
+        
+        Assertions.assertThrows(InvalidDateException.class, () -> {
+            productService.updateProduct(productId, requestUpdateDto);
+        });
+    }
+    
     
     // 회원 등록
     private User createUser(RequestSignUpDto requestDto) {
-        RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
-                                                                 "testtest123", "ADMIN",
-                                                                 "01000000000",
-                                                                 "객체지향도 Java시 Spring동");
         
         return userRepository.findById(userService.signUp(requestDto)).get();
     }
