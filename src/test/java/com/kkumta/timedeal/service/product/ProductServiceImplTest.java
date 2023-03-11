@@ -2,15 +2,14 @@ package com.kkumta.timedeal.service.product;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
-import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
+import com.kkumta.timedeal.api.dto.product.*;
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
 import com.kkumta.timedeal.domain.Product;
 import com.kkumta.timedeal.domain.ProductRepository;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
-import com.kkumta.timedeal.exception.product.ProductNotFoundException;
+import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import com.kkumta.timedeal.service.user.LoginService;
 import com.kkumta.timedeal.service.user.UserService;
@@ -53,8 +52,11 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 추가 성공")
-    void addProductSuccess() {
-        User seller = createUser();
+    void addProductSuccess() throws ProductException {
+        User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
+                                                      "testtest123", "ADMIN",
+                                                      "01000000000",
+                                                      "객체지향도 Java시 Spring동"));
         loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
@@ -76,7 +78,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 성공")
-    void getProductInfoSuccess() {
+    void getProductInfoSuccess() throws ProductException {
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             .plusMinutes(10);
@@ -100,7 +102,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션 정보 없음")
-    void getProductInfoFailWithSessionInfo() {
+    void getProductInfoFailWithSessionInfo() throws ProductException {
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             .plusMinutes(10);
@@ -117,7 +119,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션의 NAME Attribute 유효하지 않음")
-    void getProductInfoFailWithWrongName() {
+    void getProductInfoFailWithWrongName() throws ProductException {
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             .plusMinutes(10);
@@ -133,7 +135,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션의 TYPE Attribute 유효하지 않음")
-    void getProductInfoFailWithWrongType() {
+    void getProductInfoFailWithWrongType() throws ProductException {
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             .plusMinutes(10);
@@ -149,7 +151,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 존재하지 않는 상품")
-    void getProductInfoFailWithWrongId() {
+    void getProductInfoFailWithWrongId() throws ProductException {
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             .plusMinutes(10);
@@ -164,7 +166,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 삭제된 상품")
-    void getProductInfoFailWithDeletedProduct() {
+    void getProductInfoFailWithDeletedProduct() throws ProductException {
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
             .plusMinutes(10);
@@ -173,24 +175,67 @@ class ProductServiceImplTest {
             closeDate);
         Long productId = addProduct(requestDto);
         productRepository.deleteById(productId);
-        Assertions.assertThrows(RuntimeException.class, () -> {
+        Assertions.assertThrows(ProductNotFoundException.class, () -> {
             productService.getProductInfo(productId);
         });
     }
     
+    @Test
+    @DisplayName("상품 개별 삭제 성공")
+    void deleteProductSuccess() throws ProductException {
+        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+            .plusMinutes(10);
+        RequestAddProductDto requestDto = new RequestAddProductDto(
+            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
+            closeDate);
+        Long productId = addProduct(requestDto);
+        productService.deleteProduct(productId);
+        Assertions.assertThrows(ProductDeletedException.class, () -> {
+            productService.getProductInfo(productId);
+        });
+    }
+    
+    @Test
+    @DisplayName("상품 개별 삭제 실패 - 판매자가 로그인하지 않음")
+    void deleteProductFailWithSellerMismatch() throws ProductException {
+        LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+            .plusMinutes(10);
+        RequestAddProductDto requestDto = new RequestAddProductDto(
+            "test product", 100000L, "test explanation!!\nhihihihi", 100L, 10L, openDate,
+            closeDate);
+        Long productId = addProduct(requestDto);
+        
+        User newUser = createUser(new RequestSignUpDto("test2 name", "test2@test.com",
+                                                       "testtest123", "USER",
+                                                       "01011111111",
+                                                       "객체지향도 Java시 JPA동"));
+        
+        loginService.login(new RequestLoginDto(newUser.getEmail(), newUser.getPassword()));
+        
+        Assertions.assertThrows(SellerMismatchException.class, () -> {
+            productService.deleteProduct(productId);
+        });
+    }
+    
+    
     // 회원 등록
-    private User createUser() {
+    private User createUser(RequestSignUpDto requestDto) {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         
-        return userRepository.findById(userService.signUp(requestSignUpDto)).get();
+        return userRepository.findById(userService.signUp(requestDto)).get();
     }
     
     // 상품 추가
-    private Long addProduct(RequestAddProductDto requestDto) {
-        User seller = createUser();
+    private Long addProduct(RequestAddProductDto requestDto) throws ProductException {
+        User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
+                                                      "testtest123", "ADMIN",
+                                                      "01000000000",
+                                                      "객체지향도 Java시 Spring동"));
         loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
         Long productId = productService.addProduct(requestDto);
         
