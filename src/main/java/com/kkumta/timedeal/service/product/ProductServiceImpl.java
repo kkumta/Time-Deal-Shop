@@ -7,7 +7,7 @@ import com.kkumta.timedeal.domain.ProductRepository;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.domain.UserType;
-import com.kkumta.timedeal.exception.product.ProductNotFoundException;
+import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import javax.servlet.http.HttpSession;
@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     @Transactional
-    public Long addProduct(RequestAddProductDto requestDto) {
+    public Long addProduct(RequestAddProductDto requestDto) throws ProductException {
         
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");
@@ -40,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
         }
         
         if (requestDto.getCloseDate().minusMinutes(10).isBefore(requestDto.getOpenDate())) {
-            throw new RuntimeException(
+            throw new ProductException(
                 "CloseDate는 OpenDate보다 10분 이상 뒤여야 합니다. 즉, 상품이 오픈된 상태로 10분 이상 유지될 수 있어야 합니다.");
         }
         
@@ -62,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
-    public ResponseProductDto getProductInfo(Long id) {
+    public ResponseProductDto getProductInfo(Long id) throws ProductException {
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");
         
@@ -79,7 +79,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new ProductNotFoundException());
         if (product.getIsDeleted()) {
-            new RuntimeException("삭제된 상품입니다.");
+            throw new ProductDeletedException();
         }
         
         return new ResponseProductDto(product.getSeller().getName(), product.getName(),
@@ -87,5 +87,26 @@ public class ProductServiceImpl implements ProductService {
                                       product.getQuantity(),
                                       product.getMaximumPurchaseQuantity(), product.getOpenDate(),
                                       product.getCloseDate(), product.getIsSellingPaused());
+    }
+    
+    @Override
+    @Transactional
+    public void deleteProduct(Long id) throws ProductException {
+        String sessionUserName = httpSession.getAttribute("NAME").toString();
+        
+        User seller = productRepository.findById(id).get().getSeller();
+        
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ProductNotFoundException());
+        
+        if (!sessionUserName.equals(seller.getName())) {
+            throw new SellerMismatchException();
+        }
+        
+        if (product.getIsDeleted()) {
+            throw new ProductDeletedException();
+        }
+        
+        product.delete();
     }
 }
