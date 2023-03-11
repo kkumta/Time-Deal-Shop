@@ -1,8 +1,8 @@
 package com.kkumta.timedeal.exception.product;
 
-public class ProductNotFoundException extends IllegalArgumentException {
+public class ProductNotFoundException extends ProductException {
     
-    private static final String message = "존재하지 않는 상품입니다.";
+    private static final String message = "잘못된 상품 ID 입니다.";
     
     public ProductNotFoundException() {
         super(message);

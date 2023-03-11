@@ -49,10 +49,10 @@ public class Product extends BaseTimeEntity {
     private LocalDateTime closeDate;
     
     @Column(nullable = false)
-    private Boolean isSellingPaused;
+    private Boolean isSellingPaused = false;
     
     @Column(nullable = false)
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
     
     @Builder
     public Product(User seller, String name, Long price, String explanation, Long quantity,
@@ -65,13 +65,11 @@ public class Product extends BaseTimeEntity {
         this.maximumPurchaseQuantity = maximumPurchaseQuantity;
         this.openDate = openDate;
         this.closeDate = closeDate;
-        this.isSellingPaused = false;
-        this.isDeleted = false;
     }
     
     public void update(String name, Long price, String explanation, Long quantity,
                        Long maximumPurchaseQuantity, LocalDateTime openDate,
-                       LocalDateTime closeDate, Boolean isSellingPaused, Boolean isDeleted) {
+                       LocalDateTime closeDate, Boolean isSellingPaused) {
         this.name = name;
         this.price = price;
         this.explanation = explanation;
@@ -80,6 +78,9 @@ public class Product extends BaseTimeEntity {
         this.openDate = openDate;
         this.closeDate = closeDate;
         this.isSellingPaused = isSellingPaused;
-        this.isDeleted = isDeleted;
+    }
+    
+    public void delete() {
+        this.isDeleted = true;
     }
 }
