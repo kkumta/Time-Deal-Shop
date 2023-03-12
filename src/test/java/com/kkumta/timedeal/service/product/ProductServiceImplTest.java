@@ -5,8 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.kkumta.timedeal.api.dto.product.*;
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
-import com.kkumta.timedeal.domain.Product;
-import com.kkumta.timedeal.domain.ProductRepository;
+import com.kkumta.timedeal.domain.product.*;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.exception.product.*;
@@ -15,13 +14,13 @@ import com.kkumta.timedeal.service.user.LoginService;
 import com.kkumta.timedeal.service.user.UserService;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpSession;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @SpringBootTest
 class ProductServiceImplTest {
@@ -90,7 +89,7 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         
         ResponseProductDto responseDto = productService.getProductInfo(productId);
         assertEquals("test name", responseDto.getSellerName());
@@ -118,10 +117,10 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         session.removeAttribute("NAME");
         session.removeAttribute("TYPE");
-        Assertions.assertThrows(LoginInfoNotFoundException.class, () -> {
+        assertThrows(LoginInfoNotFoundException.class, () -> {
             productService.getProductInfo(productId);
         });
     }
@@ -139,9 +138,9 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         session.setAttribute("NAME", "wrong name");
-        Assertions.assertThrows(RuntimeException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             productService.getProductInfo(productId);
         });
     }
@@ -159,9 +158,9 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         session.setAttribute("TYPE", "CUSTOMER");
-        Assertions.assertThrows(RuntimeException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             productService.getProductInfo(productId);
         });
     }
@@ -179,8 +178,8 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
-        Assertions.assertThrows(ProductNotFoundException.class, () -> {
+        Long productId = addProductWithLogin(requestDto);
+        assertThrows(ProductNotFoundException.class, () -> {
             productService.getProductInfo(productId + 1);
         });
     }
@@ -198,9 +197,9 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         productRepository.deleteById(productId);
-        Assertions.assertThrows(ProductNotFoundException.class, () -> {
+        assertThrows(ProductNotFoundException.class, () -> {
             productService.getProductInfo(productId);
         });
     }
@@ -218,9 +217,9 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         productService.deleteProduct(productId);
-        Assertions.assertThrows(ProductDeletedException.class, () -> {
+        assertThrows(ProductDeletedException.class, () -> {
             productService.getProductInfo(productId);
         });
     }
@@ -238,7 +237,7 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestDto);
+        Long productId = addProductWithLogin(requestDto);
         
         User newUser = createUser(new RequestSignUpDto("test2 name", "test2@test.com",
                                                        "testtest123", "USER",
@@ -247,7 +246,7 @@ class ProductServiceImplTest {
         
         loginService.login(new RequestLoginDto(newUser.getEmail(), newUser.getPassword()));
         
-        Assertions.assertThrows(SellerMismatchException.class, () -> {
+        assertThrows(SellerMismatchException.class, () -> {
             productService.deleteProduct(productId);
         });
     }
@@ -265,7 +264,7 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestAddDto);
+        Long productId = addProductWithLogin(requestAddDto);
         
         RequestUpdateProductDto requestUpdateDto =
             RequestUpdateProductDto.builder()
@@ -305,7 +304,7 @@ class ProductServiceImplTest {
                 .openDate(openDate)
                 .closeDate(closeDate)
                 .build();
-        Long productId = addProduct(requestAddDto);
+        Long productId = addProductWithLogin(requestAddDto);
         
         RequestUpdateProductDto requestUpdateDto =
             RequestUpdateProductDto.builder()
@@ -319,9 +318,133 @@ class ProductServiceImplTest {
                 .isSellingPaused(true)
                 .build();
         
-        Assertions.assertThrows(InvalidDateException.class, () -> {
+        assertThrows(InvalidDateException.class, () -> {
             productService.updateProduct(productId, requestUpdateDto);
         });
+    }
+    
+    @Test
+    @DisplayName("상품 목록 조회 성공")
+    void getProductsSuccess() throws ProductException {
+        
+        addProducts();
+        
+        // 마감 임박순 정렬
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        Page<ResponseProductListDto> pagedProducts = productService.getProducts("EXPIRING",
+                                                                                pageRequest);
+        ResponseProductListDto expiringFirst = pagedProducts.stream().collect(Collectors.toList())
+            .get(0);
+        assertAll("0page의 0번째 상품은 성공적으로 페이징된다",
+                  () -> assertEquals(productService.getProductInfo(2L).getCloseDate(),
+                                     expiringFirst.getCloseDate()),
+                  () -> assertEquals(10L, expiringFirst.getQuantity()));
+        
+        pageRequest = PageRequest.of(9, 10);
+        pagedProducts = productService.getProducts("EXPIRING", pageRequest);
+        ResponseProductListDto expiringLast = pagedProducts.stream().collect(Collectors.toList())
+            .get(9);
+        assertAll("9page의 9번째 상품은 성공적으로 페이징된다",
+                  () -> assertEquals(productService.getProductInfo(27L).getCloseDate(),
+                                     expiringLast.getCloseDate()));
+        
+        // 수량 적은순 정렬
+        pageRequest = PageRequest.of(0, 10);
+        pagedProducts = productService.getProducts("QUANTITY_ASC", pageRequest);
+        
+        ResponseProductListDto quantityFirst = pagedProducts.stream().collect(Collectors.toList())
+            .get(0);
+        assertAll("0page의 0번째 상품은 성공적으로 페이징된다",
+                  () -> assertEquals(productService.getProductInfo(2L).getCloseDate(),
+                                     quantityFirst.getCloseDate()),
+                  () -> assertEquals(10L, quantityFirst.getQuantity()));
+        
+        pageRequest = PageRequest.of(9, 10);
+        pagedProducts = productService.getProducts("QUANTITY_ASC", pageRequest);
+        ResponseProductListDto quantityLast = pagedProducts.stream().collect(Collectors.toList())
+            .get(9);
+        assertAll("9page의 9번째 상품은 성공적으로 페이징된다",
+                  () -> assertEquals(productService.getProductInfo(27L).getCloseDate(),
+                                     quantityLast.getCloseDate()),
+                  () -> assertEquals(100L, quantityLast.getQuantity())
+        );
+    }
+    
+    @Test
+    @DisplayName("상품 목록 조회 실패 - SortCondition")
+    void getProductsFailWithSortCondition() throws ProductException {
+        addProducts();
+        assertThrows(UnsupportedSortConditionException.class, () -> {
+            PageRequest pageRequest = PageRequest.of(0, 10);
+            productService.getProducts("TEST", pageRequest);
+        });
+    }
+    
+    private void addProducts() throws ProductException {
+        User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
+                                                      "testtest123", "ADMIN",
+                                                      "01000000000",
+                                                      "객체지향도 Java시 Spring동"));
+        loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
+        
+        for (int i = 0; i < 25; i++) {
+            RequestAddProductDto requestAddDto =
+                RequestAddProductDto.builder()
+                    .name("test product")
+                    .price(100000L)
+                    .explanation("test explanation!!\nhihihihi")
+                    .quantity(10L)
+                    .maximumPurchaseQuantity(10L)
+                    .openDate(openDate)
+                    .closeDate(closeDate)
+                    .build();
+            productService.addProduct(requestAddDto);
+        }
+        
+        LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+            .plusDays(1);
+        for (int i = 0; i < 25; i++) {
+            RequestAddProductDto requestAddDto =
+                RequestAddProductDto.builder()
+                    .name("test product")
+                    .price(1000L)
+                    .explanation("test explanation!!\nhihihihi")
+                    .quantity(100L)
+                    .maximumPurchaseQuantity(10L)
+                    .openDate(openDate)
+                    .closeDate(closeDate)
+                    .build();
+            productService.addProduct(requestAddDto);
+        }
+        
+        for (int i = 10; i < 35; i++) {
+            RequestAddProductDto requestAddDto =
+                RequestAddProductDto.builder()
+                    .name("test product")
+                    .price(10000L)
+                    .explanation("test explanation!!\nhihihihi")
+                    .quantity(100L - i * 2)
+                    .maximumPurchaseQuantity(10L)
+                    .openDate(openDate)
+                    .closeDate(closeDate)
+                    .build();
+            productService.addProduct(requestAddDto);
+        }
+        closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+            .plusHours(2);
+        for (int i = 20; i < 45; i++) {
+            RequestAddProductDto requestAddDto =
+                RequestAddProductDto.builder()
+                    .name("test product")
+                    .price(700000L)
+                    .explanation("test explanation!!\nhihihihi")
+                    .quantity(100L - i)
+                    .maximumPurchaseQuantity(10L)
+                    .openDate(openDate)
+                    .closeDate(closeDate)
+                    .build();
+            productService.addProduct(requestAddDto);
+        }
     }
     
     
@@ -332,7 +455,7 @@ class ProductServiceImplTest {
     }
     
     // 상품 추가
-    private Long addProduct(RequestAddProductDto requestDto) throws ProductException {
+    private Long addProductWithLogin(RequestAddProductDto requestDto) throws ProductException {
         User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
                                                       "testtest123", "ADMIN",
                                                       "01000000000",
