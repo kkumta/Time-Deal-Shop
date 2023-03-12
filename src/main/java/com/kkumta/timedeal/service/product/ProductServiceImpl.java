@@ -1,17 +1,23 @@
 package com.kkumta.timedeal.service.product;
 
+import static org.springframework.data.domain.Sort.Order.asc;
+
 import com.kkumta.timedeal.api.dto.product.*;
-import com.kkumta.timedeal.domain.Product;
-import com.kkumta.timedeal.domain.ProductRepository;
+import com.kkumta.timedeal.domain.product.*;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.domain.UserType;
 import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import javax.servlet.http.HttpSession;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -154,5 +160,37 @@ public class ProductServiceImpl implements ProductService {
             .closeDate(product.getCloseDate())
             .isSellingPaused(product.getIsSellingPaused())
             .build();
+    }
+    
+    @Override
+    public Page<ResponseProductListDto> getProducts(String sortCondition, Pageable pageable)
+        throws ProductException {
+        Object userName = httpSession.getAttribute("NAME");
+        Object userType = httpSession.getAttribute("TYPE");
+        
+        // 계정 정보 확인
+        if (userName == null || userType == null) {
+            throw new LoginInfoNotFoundException();
+        } else if (userRepository.findByName(userName.toString()).isEmpty()) {
+            throw new RuntimeException("계정 이름이 유효하지 않습니다.");
+        } else {
+            UserType.find(userType.toString());
+        }
+        
+        SortCondition.find(sortCondition);
+        
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        Page<Product> products;
+        PageRequest pageRequest = null;
+        if (sortCondition.equals(SortCondition.EXPIRING.name())) {
+            pageRequest = PageRequest.of(pageable.getPageNumber(), 10,
+                                         Sort.by(asc("closeDate")));
+        } else if (sortCondition.equals(SortCondition.QUANTITY_ASC.name())) {
+            pageRequest = PageRequest.of(pageable.getPageNumber(), 10,
+                                         Sort.by(asc("quantity")));
+        }
+        products = productRepository.findAllByIsDeletedFalseAndIsSellingPausedFalseAndQuantityIsGreaterThanAndOpenDateLessThanEqualAndCloseDateAfter(
+            0L, now, now, pageRequest);
+        return products.map(ResponseProductListDto::of);
     }
 }

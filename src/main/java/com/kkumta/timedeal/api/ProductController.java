@@ -3,11 +3,14 @@ package com.kkumta.timedeal.api;
 import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
 import com.kkumta.timedeal.api.dto.product.RequestUpdateProductDto;
 import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
+import com.kkumta.timedeal.api.dto.product.ResponseProductListDto;
 import com.kkumta.timedeal.exception.product.ProductException;
 import com.kkumta.timedeal.service.product.ProductService;
 import java.net.URI;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,5 +46,13 @@ public class ProductController {
                                                             RequestUpdateProductDto requestDto)
         throws ProductException {
         return ResponseEntity.ok(productService.updateProduct(id, requestDto));
+    }
+    
+    @GetMapping
+    public ResponseEntity<Page<ResponseProductListDto>> getProducts(String sortCondition,
+                                                                    Pageable pageable)
+        throws ProductException {
+        
+        return ResponseEntity.ok(productService.getProducts(sortCondition, pageable));
     }
 }
