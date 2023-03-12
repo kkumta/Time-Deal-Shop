@@ -336,8 +336,8 @@ class ProductServiceImplTest {
         ResponseProductListDto expiringFirst = pagedProducts.stream().collect(Collectors.toList())
             .get(0);
         assertAll("0page의 0번째 상품은 성공적으로 페이징된다",
-                  () -> assertEquals(productService.getProductInfo(2L).getCloseDate(),
-                                     expiringFirst.getCloseDate()),
+                  () -> assertEquals(100000L,
+                                     expiringFirst.getPrice()),
                   () -> assertEquals(10L, expiringFirst.getQuantity()));
         
         pageRequest = PageRequest.of(9, 10);
@@ -345,8 +345,8 @@ class ProductServiceImplTest {
         ResponseProductListDto expiringLast = pagedProducts.stream().collect(Collectors.toList())
             .get(9);
         assertAll("9page의 9번째 상품은 성공적으로 페이징된다",
-                  () -> assertEquals(productService.getProductInfo(27L).getCloseDate(),
-                                     expiringLast.getCloseDate()));
+                  () -> assertEquals(1000L,
+                                     expiringLast.getPrice()));
         
         // 수량 적은순 정렬
         pageRequest = PageRequest.of(0, 10);
@@ -355,8 +355,8 @@ class ProductServiceImplTest {
         ResponseProductListDto quantityFirst = pagedProducts.stream().collect(Collectors.toList())
             .get(0);
         assertAll("0page의 0번째 상품은 성공적으로 페이징된다",
-                  () -> assertEquals(productService.getProductInfo(2L).getCloseDate(),
-                                     quantityFirst.getCloseDate()),
+                  () -> assertEquals(100000L,
+                                     quantityFirst.getPrice()),
                   () -> assertEquals(10L, quantityFirst.getQuantity()));
         
         pageRequest = PageRequest.of(9, 10);
@@ -364,8 +364,8 @@ class ProductServiceImplTest {
         ResponseProductListDto quantityLast = pagedProducts.stream().collect(Collectors.toList())
             .get(9);
         assertAll("9page의 9번째 상품은 성공적으로 페이징된다",
-                  () -> assertEquals(productService.getProductInfo(27L).getCloseDate(),
-                                     quantityLast.getCloseDate()),
+                  () -> assertEquals(1000L,
+                                     quantityLast.getPrice()),
                   () -> assertEquals(100L, quantityLast.getQuantity())
         );
     }
@@ -421,7 +421,7 @@ class ProductServiceImplTest {
             RequestAddProductDto requestAddDto =
                 RequestAddProductDto.builder()
                     .name("test product")
-                    .price(10000L)
+                    .price(1000L)
                     .explanation("test explanation!!\nhihihihi")
                     .quantity(100L - i * 2)
                     .maximumPurchaseQuantity(10L)
