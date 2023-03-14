@@ -32,7 +32,7 @@ public class Order extends BaseTimeEntity {
     @JoinColumn(name = "product_id")
     private Product product;
     
-    private Long userId;
+    private Long buyerId;
     
     @Embedded
     private DeliveryInfo deliveryInfo;
@@ -42,20 +42,20 @@ public class Order extends BaseTimeEntity {
     private Long amountPrice;
     
     @Builder
-    public Order(Product product, Long userId, DeliveryInfo deliveryInfo, Long quantity,
+    public Order(Product product, Long buyerId, DeliveryInfo deliveryInfo, Long quantity,
                  Long amountPrice) {
         this.product = product;
-        this.userId = userId;
+        this.buyerId = buyerId;
         this.deliveryInfo = deliveryInfo;
         this.quantity = quantity;
         this.amountPrice = amountPrice;
     }
     
-    public static Order createOrder(Product product, Long userId, DeliveryInfo deliveryInfo,
+    public static Order createOrder(Product product, Long buyerId, DeliveryInfo deliveryInfo,
                                     Long quantity) {
         Order order = new Order();
         order.product = product;
-        order.userId = userId;
+        order.buyerId = buyerId;
         order.deliveryInfo = deliveryInfo;
         order.quantity = quantity;
         order.amountPrice = quantity * product.getPrice();

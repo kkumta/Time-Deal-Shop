@@ -1,6 +1,7 @@
 package com.kkumta.timedeal.service.order;
 
 import com.kkumta.timedeal.api.dto.order.RequestOrderDto;
+import com.kkumta.timedeal.api.dto.order.ResponseOrderListDto;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.domain.order.DeliveryInfo;
@@ -14,9 +15,17 @@ import com.kkumta.timedeal.exception.product.ProductException;
 import com.kkumta.timedeal.exception.product.ProductNotFoundException;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,13 +77,60 @@ public class OrderServiceImpl implements OrderService {
             throw new StockExceededException();
         }
         
-        Long userId = buyer.getId();
+        Long buyerId = buyer.getId();
         DeliveryInfo deliveryInfo = new DeliveryInfo(requestDto.getReceiverName(),
                                                      requestDto.getAddress(),
                                                      requestDto.getReceiverContact());
         Long quantity = requestDto.getQuantity();
         
-        return orderRepository.save(Order.createOrder(product, userId, deliveryInfo, quantity))
+        return orderRepository.save(Order.createOrder(product, buyerId, deliveryInfo, quantity))
             .getId();
+    }
+    
+    @Override
+    public Page<ResponseOrderListDto> getOrders(Long buyerId, String startDate,
+                                                String endDate, Pageable pageable) {
+        
+        Object userName = httpSession.getAttribute("NAME");
+        Object userType = httpSession.getAttribute("TYPE");
+        Long loginUserId = userRepository.findByName(userName.toString()).get().getId();
+        
+        // 계정 정보 확인
+        if (userName == null || userType == null) {
+            throw new LoginInfoNotFoundException();
+        } else if (!userType.toString().equals("USER")) {
+            throw new InvalidCredentialsException("USER 권한으로 로그인되지 않았습니다.");
+        } else if (buyerId != loginUserId) {
+            throw new InvalidCredentialsException("로그인한 사용자와 조회하려는 사용자 정보가 다릅니다.");
+        }
+        
+        // 날짜 정보 확인
+        LocalDateTime start, end;
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
+            start = LocalDate.parse(startDate, formatter).atStartOfDay();
+            end = LocalDate.parse(endDate, formatter).atTime(23, 59, 59, 999999999);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("유효하지 않은 date 타입입니다.");
+        }
+        if (start.isAfter(end)) {
+            throw new RuntimeException("시작이 끝보다 늦을 수 없습니다.");
+        }
+        LocalDateTime today = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        if (start.isAfter(today) || end.truncatedTo(ChronoUnit.DAYS).isAfter(today)) {
+            System.out.println("today = " + today);
+            System.out.println("start = " + start);
+            System.out.println("end = " + end);
+            throw new RuntimeException("미래의 주문은 조회할 수 없습니다.");
+        }
+        
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), 10,
+                                                 Sort.by("createTime"));
+        
+        Page<Order> orders = orderRepository.findAllByBuyerIdAndCreateTimeBetween(buyerId,
+                                                                                  start, end,
+                                                                                  pageRequest);
+        
+        return orders.map(ResponseOrderListDto::of);
     }
 }
