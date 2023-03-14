@@ -3,20 +3,21 @@ package com.kkumta.timedeal.domain.product;
 import static javax.persistence.GenerationType.AUTO;
 
 import com.kkumta.timedeal.domain.BaseTimeEntity;
-import com.kkumta.timedeal.domain.User;
+import com.kkumta.timedeal.domain.order.Order;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Product extends BaseTimeEntity {
     
@@ -25,9 +26,8 @@ public class Product extends BaseTimeEntity {
     @GeneratedValue(strategy = AUTO)
     private Long id;
     
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User seller;
+    @Column(nullable = false)
+    private String sellerName;
     
     @Column(nullable = false)
     private String name;
@@ -56,10 +56,13 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private Boolean isDeleted = false;
     
+    @OneToMany(mappedBy = "product")
+    private List<Order> orders = new ArrayList<>();
+    
     @Builder
-    public Product(User seller, String name, Long price, String explanation, Long quantity,
+    public Product(String sellerName, String name, Long price, String explanation, Long quantity,
                    Long maximumPurchaseQuantity, LocalDateTime openDate, LocalDateTime closeDate) {
-        this.seller = seller;
+        this.sellerName = sellerName;
         this.name = name;
         this.price = price;
         this.explanation = explanation;
@@ -84,5 +87,9 @@ public class Product extends BaseTimeEntity {
     
     public void delete() {
         this.isDeleted = true;
+    }
+    
+    public void deleteStock(Long quantity) {
+        this.quantity -= quantity;
     }
 }
