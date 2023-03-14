@@ -4,7 +4,6 @@ import static org.springframework.data.domain.Sort.Order.asc;
 
 import com.kkumta.timedeal.api.dto.product.*;
 import com.kkumta.timedeal.domain.product.*;
-import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.domain.UserType;
 import com.kkumta.timedeal.exception.product.*;
@@ -48,12 +47,10 @@ public class ProductServiceImpl implements ProductService {
         if (requestDto.getCloseDate().minusMinutes(10).isBefore(requestDto.getOpenDate())) {
             throw new InvalidDateException();
         }
-        
-        User seller = userRepository.findByName(userName.toString())
-            .orElseThrow(() -> new RuntimeException("계정 정보가 유효하지 않습니다."));
+        ;
         
         Product product = Product.builder()
-            .seller(seller)
+            .sellerName(userName.toString())
             .name(requestDto.getName())
             .price(requestDto.getPrice())
             .explanation(requestDto.getExplanation())
@@ -88,7 +85,7 @@ public class ProductServiceImpl implements ProductService {
         }
         
         return ResponseProductDto.builder()
-            .sellerName(product.getSeller().getName())
+            .sellerName(userName.toString())
             .productName(product.getName())
             .price(product.getPrice())
             .explanation(product.getExplanation())
@@ -103,14 +100,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) throws ProductException {
-        String sessionUserName = httpSession.getAttribute("NAME").toString();
-        
-        User seller = productRepository.findById(id).get().getSeller();
+        String userName = httpSession.getAttribute("NAME").toString();
         
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new ProductNotFoundException());
         
-        if (!sessionUserName.equals(seller.getName())) {
+        if (!userName.equals(product.getSellerName())) {
             throw new SellerMismatchException();
         }
         
@@ -125,14 +120,12 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ResponseProductDto updateProduct(Long productId, RequestUpdateProductDto requestDto)
         throws ProductException {
-        String sessionUserName = httpSession.getAttribute("NAME").toString();
-        
-        User seller = productRepository.findById(productId).get().getSeller();
+        String userName = httpSession.getAttribute("NAME").toString();
         
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ProductNotFoundException());
         
-        if (!sessionUserName.equals(seller.getName())) {
+        if (!userName.equals(product.getSellerName())) {
             throw new SellerMismatchException();
         }
         
@@ -150,7 +143,7 @@ public class ProductServiceImpl implements ProductService {
                        requestDto.getIsSellingPaused());
         
         return ResponseProductDto.builder()
-            .sellerName(product.getSeller().getName())
+            .sellerName(userName)
             .productName(product.getName())
             .price(product.getPrice())
             .explanation(product.getExplanation())

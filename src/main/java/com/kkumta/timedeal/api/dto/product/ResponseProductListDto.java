@@ -20,7 +20,7 @@ public class ResponseProductListDto {
     
     public static ResponseProductListDto of(Product product) {
         return ResponseProductListDto.builder()
-            .sellerName(product.getSeller().getName())
+            .sellerName(product.getSellerName())
             .productName(product.getName())
             .price(product.getPrice())
             .quantity(product.getQuantity())
