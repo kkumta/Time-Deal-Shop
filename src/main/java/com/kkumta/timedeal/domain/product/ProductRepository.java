@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -20,4 +18,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     Page<Product> findAllByIsDeletedFalseAndIsSellingPausedFalseAndQuantityIsGreaterThanAndOpenDateLessThanEqualAndCloseDateAfter(
         Long quantity, LocalDateTime openDate, LocalDateTime closeDate, Pageable pageable);
+    
+    Page<Product> findAllBySellerNameAndCreateTimeBetween(String sellerName, LocalDateTime start,
+                                                        LocalDateTime end,
+                                                        Pageable pageable);
 }

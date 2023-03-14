@@ -55,4 +55,13 @@ public class ProductController {
         
         return ResponseEntity.ok(productService.getProducts(sortCondition, pageable));
     }
+    
+    @GetMapping("/my")
+    public ResponseEntity<Page<ResponseProductListDto>> getMyProducts(String startDate,
+                                                                      String endDate,
+                                                                      Pageable pageable) {
+        
+        return ResponseEntity.ok(
+            productService.getMyProducts(startDate, endDate, pageable));
+    }
 }
