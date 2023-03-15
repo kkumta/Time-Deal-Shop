@@ -98,7 +98,7 @@ public class OrderServiceImpl implements OrderService {
             throw new LoginInfoNotFoundException();
         } else if (!userType.toString().equals("USER")) {
             throw new InvalidCredentialsException("USER 권한으로 로그인되지 않았습니다.");
-        } else if (buyerId != loginUserId) {
+        } else if (buyerId.longValue() != loginUserId.longValue()) {
             throw new InvalidCredentialsException("로그인한 사용자와 조회하려는 사용자 정보가 다릅니다.");
         }
         
