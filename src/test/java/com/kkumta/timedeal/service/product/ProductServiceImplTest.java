@@ -2,15 +2,19 @@ package com.kkumta.timedeal.service.product;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.kkumta.timedeal.api.dto.order.ResponseOrderListDto;
+import com.kkumta.timedeal.api.dto.order.RequestOrderDto;
 import com.kkumta.timedeal.api.dto.product.*;
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
+import com.kkumta.timedeal.api.dto.user.ResponseUserListDto;
+import com.kkumta.timedeal.domain.order.OrderRepository;
 import com.kkumta.timedeal.domain.product.*;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
+import com.kkumta.timedeal.exception.order.OrderException;
 import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.service.order.OrderService;
 import com.kkumta.timedeal.service.user.LoginService;
 import com.kkumta.timedeal.service.user.UserService;
 import java.time.LocalDateTime;
@@ -34,6 +38,9 @@ class ProductServiceImplTest {
     private UserService userService;
     
     @Autowired
+    private OrderService orderService;
+    
+    @Autowired
     private LoginService loginService;
     
     @Autowired
@@ -41,6 +48,9 @@ class ProductServiceImplTest {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private OrderRepository orderRepository;
     
     @Autowired
     private HttpSession session;
@@ -51,6 +61,7 @@ class ProductServiceImplTest {
     
     @AfterEach
     void clear() {
+        orderRepository.deleteAll();
         productRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -416,6 +427,52 @@ class ProductServiceImplTest {
         // then
         Assertions.assertEquals(11, products.getTotalElements());
         Assertions.assertEquals(2, products.getTotalPages());
+    }
+    
+    @Test
+    @DisplayName("productId로 구매한 User 목록 조회")
+    void getUsersByProduct() throws ProductException, OrderException {
+        
+        // given
+        User seller = createUser(new RequestSignUpDto("seller name", "test@test.com",
+                                                      "testtest123", "ADMIN",
+                                                      "01000000000",
+                                                      "객체지향도 Java시 Spring동"));
+        loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
+        RequestAddProductDto requestAddDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(1000L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
+        Long productId = productService.addProduct(requestAddDto);
+        for (int i = 0; i < 21; i++) {
+            User buyer = createUser(new RequestSignUpDto("buyer name" + i, i + "test@test.com",
+                                                         "testtest123", "USER",
+                                                         "010111111" + i,
+                                                         "객체지향도 Java시 Spring동"));
+            loginService.login(new RequestLoginDto(buyer.getEmail(), buyer.getPassword()));
+            orderService.orderProduct(RequestOrderDto.builder()
+                                          .productId(productId)
+                                          .receiverName("구매자")
+                                          .address("구매자 주소")
+                                          .receiverContact("01011111111")
+                                          .quantity(5L)
+                                          .build());
+        }
+        loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
+        
+        // when
+        Page<ResponseUserListDto> users = productService.getUsersByProduct(productId,
+                                                                           PageRequest.of(0, 10));
+        
+        // then
+        Assertions.assertEquals(21, users.getTotalElements());
+        Assertions.assertEquals(2, users.getTotalPages());
     }
     
     private void addProducts() throws ProductException {
