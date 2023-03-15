@@ -15,14 +15,11 @@ import com.kkumta.timedeal.exception.product.ProductException;
 import com.kkumta.timedeal.exception.product.ProductNotFoundException;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.util.DateUtil;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +41,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Long orderProduct(RequestOrderDto requestDto)
-        throws ProductException, OrderException {
+        throws ProductException, OrderException, UserException {
         
         // 구매자 유효성 검증
         Object userName = httpSession.getAttribute("NAME");
@@ -90,7 +87,7 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     public Page<ResponseOrderListDto> getOrders(Long buyerId, String startDate,
-                                                String endDate, Pageable pageable) {
+                                                String endDate, Pageable pageable) throws UserException{
         
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");

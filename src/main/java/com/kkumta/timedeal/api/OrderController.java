@@ -6,6 +6,7 @@ import com.kkumta.timedeal.domain.product.Product;
 import com.kkumta.timedeal.domain.product.ProductRepository;
 import com.kkumta.timedeal.exception.order.OrderException;
 import com.kkumta.timedeal.exception.product.ProductException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.order.OrderService;
 import java.net.URI;
 import java.util.Optional;
@@ -33,7 +34,8 @@ public class OrderController {
     
     @PostMapping
     public ResponseEntity<Long> orderProduct(
-        @Valid @RequestBody RequestOrderDto requestDto) throws OrderException, ProductException {
+        @Valid @RequestBody RequestOrderDto requestDto)
+        throws OrderException, ProductException, UserException {
         Long orderId = orderService.orderProduct(requestDto);
         Optional<Product> product = productRepository.findById(requestDto.getProductId());
         log.info("현재 남은 수량: " + product.get().getQuantity());
@@ -44,7 +46,8 @@ public class OrderController {
     public ResponseEntity<Page<ResponseOrderListDto>> getOrders(Long buyerId,
                                                                   String startDate,
                                                                   String endDate,
-                                                                  Pageable pageable) {
+                                                                  Pageable pageable)
+        throws UserException {
         
         return ResponseEntity.ok(orderService.getOrders(buyerId, startDate, endDate, pageable));
     }

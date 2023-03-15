@@ -1,6 +1,7 @@
 package com.kkumta.timedeal.domain.product;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import javax.persistence.LockModeType;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         Long quantity, LocalDateTime openDate, LocalDateTime closeDate, Pageable pageable);
     
     Page<Product> findAllBySellerNameAndCreateTimeBetween(String sellerName, LocalDateTime start,
-                                                        LocalDateTime end,
-                                                        Pageable pageable);
+                                                          LocalDateTime end,
+                                                          Pageable pageable);
+    
+    List<Product> findAllBySellerName(String sellerName);
 }
