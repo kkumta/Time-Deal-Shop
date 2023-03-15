@@ -4,6 +4,7 @@ import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
 import com.kkumta.timedeal.api.dto.product.RequestUpdateProductDto;
 import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
 import com.kkumta.timedeal.api.dto.product.ResponseProductListDto;
+import com.kkumta.timedeal.api.dto.user.ResponseUserListDto;
 import com.kkumta.timedeal.exception.product.ProductException;
 import com.kkumta.timedeal.service.product.ProductService;
 import java.net.URI;
@@ -63,5 +64,14 @@ public class ProductController {
         
         return ResponseEntity.ok(
             productService.getMyProducts(startDate, endDate, pageable));
+    }
+    
+    @GetMapping("/{id}/users")
+    public ResponseEntity<Page<ResponseUserListDto>> getUsersByProduct(@PathVariable Long id,
+                                                                       Pageable pageable)
+        throws ProductException {
+        
+        return ResponseEntity.ok(
+            productService.getUsersByProduct(id, pageable));
     }
 }

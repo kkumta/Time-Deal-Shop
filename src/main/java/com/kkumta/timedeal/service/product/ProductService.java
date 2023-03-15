@@ -1,6 +1,7 @@
 package com.kkumta.timedeal.service.product;
 
 import com.kkumta.timedeal.api.dto.product.*;
+import com.kkumta.timedeal.api.dto.user.ResponseUserListDto;
 import com.kkumta.timedeal.exception.product.ProductException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,4 +21,7 @@ public interface ProductService {
         throws ProductException;
     
     Page<ResponseProductListDto> getMyProducts(String startDate, String endDate, Pageable pageable);
+    
+    Page<ResponseUserListDto> getUsersByProduct(Long id, Pageable pageable)
+        throws ProductException;
 }

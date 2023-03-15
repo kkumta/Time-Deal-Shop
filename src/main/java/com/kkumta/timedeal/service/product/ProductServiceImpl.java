@@ -2,9 +2,10 @@ package com.kkumta.timedeal.service.product;
 
 import static org.springframework.data.domain.Sort.Order.asc;
 
-import com.kkumta.timedeal.api.dto.order.ResponseOrderListDto;
 import com.kkumta.timedeal.api.dto.product.*;
-import com.kkumta.timedeal.domain.order.Order;
+import com.kkumta.timedeal.api.dto.user.ResponseUserListDto;
+import com.kkumta.timedeal.domain.User;
+import com.kkumta.timedeal.domain.order.OrderRepository;
 import com.kkumta.timedeal.domain.product.*;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.domain.UserType;
@@ -12,10 +13,9 @@ import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import com.kkumta.timedeal.util.DateUtil;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductServiceImpl implements ProductService {
     
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final HttpSession httpSession;
     
@@ -218,5 +219,26 @@ public class ProductServiceImpl implements ProductService {
             start, end,
             pageRequest);
         return products.map(ResponseProductListDto::of);
+    }
+    
+    @Override
+    public Page<ResponseUserListDto> getUsersByProduct(Long productId, Pageable pageable)
+        throws ProductException {
+        
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new ProductNotFoundException());
+        
+        // 계정 정보 확인
+        String userName = httpSession.getAttribute("NAME").toString();
+        if (!userName.equals(product.getSellerName())) {
+            throw new SellerMismatchException();
+        }
+        
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), 20,
+                                                 Sort.by("id"));
+        List<Long> userList = orderRepository.findUserIdsByProductId(productId);
+        Page<User> users = userRepository.findByIdIn(userList, pageRequest);
+        
+        return users.map(ResponseUserListDto::of);
     }
 }
