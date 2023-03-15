@@ -12,6 +12,7 @@ import com.kkumta.timedeal.domain.UserType;
 import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.util.DateUtil;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -37,7 +38,7 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     @Transactional
-    public Long addProduct(RequestAddProductDto requestDto) throws ProductException {
+    public Long addProduct(RequestAddProductDto requestDto) throws ProductException, UserException {
         
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");
@@ -69,7 +70,8 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
-    public ResponseProductDto getProductInfo(Long id) throws ProductException {
+    public ResponseProductDto getProductInfo(Long id)
+        throws ProductException, LoginInfoNotFoundException {
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");
         
@@ -162,7 +164,7 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public Page<ResponseProductListDto> getProducts(String sortCondition, Pageable pageable)
-        throws ProductException {
+        throws ProductException, LoginInfoNotFoundException {
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");
         
@@ -194,7 +196,8 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public Page<ResponseProductListDto> getMyProducts(String startDate,
-                                                      String endDate, Pageable pageable) {
+                                                      String endDate, Pageable pageable)
+        throws UserException {
         
         Object userName = httpSession.getAttribute("NAME");
         Object userType = httpSession.getAttribute("TYPE");

@@ -5,6 +5,7 @@ import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.exception.user.UserNotFoundException;
 import java.util.Optional;
 import javax.servlet.http.HttpSession;
@@ -20,7 +21,7 @@ public class LoginServiceImpl implements LoginService {
     private final UserRepository userRepository;
     private final HttpSession httpSession;
     
-    public void login(RequestLoginDto requestDto) {
+    public void login(RequestLoginDto requestDto) throws UserException {
         
         // DB에서 로그인 정보와 일치하는 유저를 찾는다
         String email = requestDto.getEmail();
@@ -42,7 +43,7 @@ public class LoginServiceImpl implements LoginService {
         httpSession.setAttribute("TYPE", user.get().getType().name());
     }
     
-    public void logout() {
+    public void logout() throws UserException {
         
         // 세션에 로그인 정보가 없을 경우
         if (httpSession.getAttribute("NAME") == null || httpSession.getAttribute("TYPE") == null) {

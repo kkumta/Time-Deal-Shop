@@ -5,6 +5,7 @@ import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.exception.user.UserNotFoundException;
 import javax.servlet.http.HttpSession;
 import org.junit.jupiter.api.AfterEach;
@@ -36,7 +37,7 @@ class LoginServiceImplTest {
     
     @Test
     @DisplayName("로그인_성공")
-    void loginSuccess() {
+    void loginSuccess() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -50,7 +51,7 @@ class LoginServiceImplTest {
     
     @Test
     @DisplayName("로그인_실패_없는_ID")
-    void loginFailWithId() {
+    void loginFailWithId() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -64,7 +65,7 @@ class LoginServiceImplTest {
     
     @Test
     @DisplayName("로그인_실패_틀린_비밀번호")
-    void loginFailWithPassword() {
+    void loginFailWithPassword() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -78,7 +79,7 @@ class LoginServiceImplTest {
     
     @Test
     @DisplayName("로그아웃_성공")
-    void logoutSuccess() {
+    void logoutSuccess() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -93,7 +94,7 @@ class LoginServiceImplTest {
     
     @Test
     @DisplayName("로그아웃_실패_세션에_NAME_없음")
-    void logoutFailWithName() {
+    void logoutFailWithName() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -109,7 +110,7 @@ class LoginServiceImplTest {
     
     @Test
     @DisplayName("로그아웃_실패_세션에_TYPE_없음")
-    void logoutFailWithType() {
+    void logoutFailWithType() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",

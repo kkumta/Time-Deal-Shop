@@ -1,11 +1,13 @@
 package com.kkumta.timedeal.api;
 
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.user.UserService;
 import java.net.URI;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +33,15 @@ public class UserController {
     }
     
     @PostMapping
-    public ResponseEntity<Long> signUp(@Valid @RequestBody RequestSignUpDto requestSignUpDto) {
+    public ResponseEntity<Long> signUp(@Valid @RequestBody RequestSignUpDto requestSignUpDto)
+        throws UserException {
         Long userId = userService.signUp(requestSignUpDto);
         return ResponseEntity.created(URI.create("users/" + userId)).body(userId);
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) throws UserException {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -6,6 +6,8 @@ import com.kkumta.timedeal.api.dto.product.ResponseProductDto;
 import com.kkumta.timedeal.api.dto.product.ResponseProductListDto;
 import com.kkumta.timedeal.api.dto.user.ResponseUserListDto;
 import com.kkumta.timedeal.exception.product.ProductException;
+import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.product.ProductService;
 import java.net.URI;
 import javax.validation.Valid;
@@ -24,14 +26,14 @@ public class ProductController {
     
     @PostMapping
     public ResponseEntity<Long> addProduct(
-        @Valid @RequestBody RequestAddProductDto requestDto) throws ProductException {
+        @Valid @RequestBody RequestAddProductDto requestDto) throws ProductException, UserException {
         Long productId = productService.addProduct(requestDto);
         return ResponseEntity.created(URI.create("products/" + productId)).body(productId);
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<ResponseProductDto> getProductInfo(@PathVariable Long id)
-        throws ProductException {
+        throws ProductException, LoginInfoNotFoundException {
         return ResponseEntity.ok(productService.getProductInfo(id));
     }
     
@@ -52,7 +54,7 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ResponseProductListDto>> getProducts(String sortCondition,
                                                                     Pageable pageable)
-        throws ProductException {
+        throws ProductException, LoginInfoNotFoundException {
         
         return ResponseEntity.ok(productService.getProducts(sortCondition, pageable));
     }
@@ -60,7 +62,8 @@ public class ProductController {
     @GetMapping("/my")
     public ResponseEntity<Page<ResponseProductListDto>> getMyProducts(String startDate,
                                                                       String endDate,
-                                                                      Pageable pageable) {
+                                                                      Pageable pageable)
+        throws UserException {
         
         return ResponseEntity.ok(
             productService.getMyProducts(startDate, endDate, pageable));

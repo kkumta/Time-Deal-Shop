@@ -14,6 +14,7 @@ import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.exception.order.OrderException;
 import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.order.OrderService;
 import com.kkumta.timedeal.service.user.LoginService;
 import com.kkumta.timedeal.service.user.UserService;
@@ -68,7 +69,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 추가 성공")
-    void addProductSuccess() throws ProductException {
+    void addProductSuccess() throws ProductException, UserException {
         User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
                                                       "testtest123", "ADMIN",
                                                       "01000000000",
@@ -91,7 +92,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 성공")
-    void getProductInfoSuccess() throws ProductException {
+    void getProductInfoSuccess() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -119,7 +120,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션 정보 없음")
-    void getProductInfoFailWithSessionInfo() throws ProductException {
+    void getProductInfoFailWithSessionInfo() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -140,7 +141,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션의 NAME Attribute 유효하지 않음")
-    void getProductInfoFailWithWrongName() throws ProductException {
+    void getProductInfoFailWithWrongName() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -160,7 +161,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 세션의 TYPE Attribute 유효하지 않음")
-    void getProductInfoFailWithWrongType() throws ProductException {
+    void getProductInfoFailWithWrongType() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -180,7 +181,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 존재하지 않는 상품")
-    void getProductInfoFailWithWrongId() throws ProductException {
+    void getProductInfoFailWithWrongId() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -199,7 +200,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 조회 실패 - 삭제된 상품")
-    void getProductInfoFailWithDeletedProduct() throws ProductException {
+    void getProductInfoFailWithDeletedProduct() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -219,7 +220,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 삭제 성공")
-    void deleteProductSuccess() throws ProductException {
+    void deleteProductSuccess() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -239,7 +240,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 삭제 실패 - 판매자가 로그인하지 않음")
-    void deleteProductFailWithSellerMismatch() throws ProductException {
+    void deleteProductFailWithSellerMismatch() throws ProductException, UserException {
         RequestAddProductDto requestDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -266,7 +267,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 수정 성공")
-    void updateProduct() throws ProductException {
+    void updateProduct() throws ProductException, UserException {
         RequestAddProductDto requestAddDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -306,7 +307,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 개별 수정 실패 - InvalidDate")
-    void updateProductFail() throws ProductException {
+    void updateProductFail() throws ProductException, UserException {
         RequestAddProductDto requestAddDto =
             RequestAddProductDto.builder()
                 .name("test product")
@@ -338,7 +339,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 목록 조회 성공")
-    void getProductsSuccess() throws ProductException {
+    void getProductsSuccess() throws ProductException, UserException {
         
         addProducts();
         
@@ -385,7 +386,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("상품 목록 조회 실패 - SortCondition")
-    void getProductsFailWithSortCondition() throws ProductException {
+    void getProductsFailWithSortCondition() throws ProductException, UserException {
         addProducts();
         assertThrows(UnsupportedSortConditionException.class, () -> {
             PageRequest pageRequest = PageRequest.of(0, 10);
@@ -395,7 +396,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("내 상품 목록 조회")
-    void getMyProducts() throws ProductException {
+    void getMyProducts() throws ProductException, UserException {
         
         // given
         User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
@@ -431,7 +432,7 @@ class ProductServiceImplTest {
     
     @Test
     @DisplayName("productId로 구매한 User 목록 조회")
-    void getUsersByProduct() throws ProductException, OrderException {
+    void getUsersByProduct() throws ProductException, OrderException, UserException {
         
         // given
         User seller = createUser(new RequestSignUpDto("seller name", "test@test.com",
@@ -475,7 +476,7 @@ class ProductServiceImplTest {
         Assertions.assertEquals(2, users.getTotalPages());
     }
     
-    private void addProducts() throws ProductException {
+    private void addProducts() throws ProductException, UserException {
         User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
                                                       "testtest123", "ADMIN",
                                                       "01000000000",
@@ -543,13 +544,14 @@ class ProductServiceImplTest {
     }
     
     // 회원 등록
-    private User createUser(RequestSignUpDto requestDto) {
+    private User createUser(RequestSignUpDto requestDto) throws UserException {
         
         return userRepository.findById(userService.signUp(requestDto)).get();
     }
     
     // 상품 추가
-    private Long addProductWithLogin(RequestAddProductDto requestDto) throws ProductException {
+    private Long addProductWithLogin(RequestAddProductDto requestDto)
+        throws ProductException, UserException {
         User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
                                                       "testtest123", "ADMIN",
                                                       "01000000000",

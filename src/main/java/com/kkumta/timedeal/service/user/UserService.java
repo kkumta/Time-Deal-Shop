@@ -1,6 +1,8 @@
 package com.kkumta.timedeal.service.user;
 
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
+import com.kkumta.timedeal.exception.user.UserException;
+import com.kkumta.timedeal.exception.user.ValidateUniqueNameException;
 
 public interface UserService {
     
@@ -8,5 +10,7 @@ public interface UserService {
     
     Boolean validateUniqueEmail(String email);
     
-    Long signUp(RequestSignUpDto requestSignUpDto);
+    Long signUp(RequestSignUpDto requestSignUpDto) throws UserException;
+    
+    void deleteUser(Long id) throws UserException;
 }

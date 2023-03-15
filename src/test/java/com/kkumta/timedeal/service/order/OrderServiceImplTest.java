@@ -13,6 +13,7 @@ import com.kkumta.timedeal.domain.order.OrderRepository;
 import com.kkumta.timedeal.domain.product.ProductRepository;
 import com.kkumta.timedeal.exception.order.OrderException;
 import com.kkumta.timedeal.exception.product.ProductException;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.product.ProductService;
 import com.kkumta.timedeal.service.user.LoginService;
 import com.kkumta.timedeal.service.user.UserService;
@@ -61,7 +62,7 @@ class OrderServiceImplTest {
     
     @Test
     @DisplayName("상품 주문")
-    void orderProduct() throws ProductException, OrderException, InterruptedException {
+    void orderProduct() throws ProductException, OrderException, InterruptedException, UserException {
         
         // given
         Long productId = addProductWithLogin();
@@ -88,7 +89,7 @@ class OrderServiceImplTest {
     
     @Test
     @DisplayName("주문 목록 조회")
-    void getOrders() throws ProductException, OrderException {
+    void getOrders() throws ProductException, OrderException, UserException {
         
         // given
         Long productId = addProductWithLogin();
@@ -122,13 +123,13 @@ class OrderServiceImplTest {
     }
     
     // 회원 등록
-    private User createUser(RequestSignUpDto requestDto) {
+    private User createUser(RequestSignUpDto requestDto) throws UserException {
         
         return userRepository.findById(userService.signUp(requestDto)).get();
     }
     
     // 상품 추가
-    private Long addProductWithLogin() throws ProductException {
+    private Long addProductWithLogin() throws ProductException, UserException {
         
         LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)

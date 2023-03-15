@@ -1,9 +1,17 @@
 package com.kkumta.timedeal.service.user;
 
+import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
+import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
-import com.kkumta.timedeal.service.user.UserService;
+import com.kkumta.timedeal.exception.product.ProductException;
+import com.kkumta.timedeal.exception.user.UserException;
+import com.kkumta.timedeal.service.product.ProductService;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+import javax.servlet.http.HttpSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +27,20 @@ class UserServiceImplTest {
     private UserService userService;
     
     @Autowired
+    private LoginService loginService;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private HttpSession session;
+    
+    final LocalDateTime openDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    final LocalDateTime closeDate = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+        .plusMinutes(10);
     
     @AfterEach
     void clear() {
@@ -28,7 +49,7 @@ class UserServiceImplTest {
     
     @Test
     @DisplayName("중복 name 검증")
-    void validateUniqueName() {
+    void validateUniqueName() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -41,7 +62,7 @@ class UserServiceImplTest {
     
     @Test
     @DisplayName("중복 email 검증")
-    void validateUniqueEmail() {
+    void validateUniqueEmail() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
@@ -106,12 +127,44 @@ class UserServiceImplTest {
     
     @Test
     @DisplayName("회원가입_성공")
-    void signUpSuccess() {
+    void signUpSuccess() throws UserException {
         RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
                                                                  "testtest123", "ADMIN",
                                                                  "01000000000",
                                                                  "객체지향도 Java시 Spring동");
         User user = userRepository.findById(userService.signUp(requestSignUpDto)).get();
         Assertions.assertEquals("test name", user.getName());
+    }
+    
+    @Test
+    @DisplayName("회원탈퇴")
+    void deleteUser() throws UserException, ProductException {
+        // given
+        RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
+                                                                 "testtest123", "ADMIN",
+                                                                 "01000000000",
+                                                                 "객체지향도 Java시 Spring동");
+        User user = userRepository.findById(userService.signUp(requestSignUpDto)).get();
+        loginService.login(new RequestLoginDto(user.getEmail(), user.getPassword()));
+        RequestAddProductDto requestAddDto =
+            RequestAddProductDto.builder()
+                .name("test product")
+                .price(100000L)
+                .explanation("test explanation!!\nhihihihi")
+                .quantity(1000L)
+                .maximumPurchaseQuantity(10L)
+                .openDate(openDate)
+                .closeDate(closeDate)
+                .build();
+        for (int i = 0; i < 2; i++) {
+            productService.addProduct(requestAddDto);
+        }
+        
+        // when
+        userService.deleteUser(user.getId());
+        
+        // then
+        Optional<User> findUser = userRepository.findById(user.getId());
+        Assertions.assertEquals(Optional.empty(), findUser);
     }
 }

@@ -1,6 +1,7 @@
 package com.kkumta.timedeal.api;
 
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
+import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.user.LoginService;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,12 @@ public class LoginController {
     private final LoginService loginService;
     
     @PostMapping("/login")
-    public void login(@Valid @RequestBody RequestLoginDto requestDto) {
+    public void login(@Valid @RequestBody RequestLoginDto requestDto) throws UserException {
         loginService.login(requestDto);
     }
     
     @DeleteMapping("/logout")
-    public void logout() {
+    public void logout() throws UserException {
         loginService.logout();
     }
 }
