@@ -18,4 +18,6 @@ public interface ProductService {
     
     Page<ResponseProductListDto> getProducts(String sortCondition, Pageable pageable)
         throws ProductException;
+    
+    Page<ResponseProductListDto> getMyProducts(String startDate, String endDate, Pageable pageable);
 }

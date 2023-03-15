@@ -15,6 +15,7 @@ import com.kkumta.timedeal.exception.product.ProductException;
 import com.kkumta.timedeal.exception.product.ProductNotFoundException;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.util.DateUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -105,24 +106,9 @@ public class OrderServiceImpl implements OrderService {
         }
         
         // 날짜 정보 확인
-        LocalDateTime start, end;
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
-            start = LocalDate.parse(startDate, formatter).atStartOfDay();
-            end = LocalDate.parse(endDate, formatter).atTime(23, 59, 59, 999999999);
-        } catch (RuntimeException e) {
-            throw new RuntimeException("유효하지 않은 date 타입입니다.");
-        }
-        if (start.isAfter(end)) {
-            throw new RuntimeException("시작이 끝보다 늦을 수 없습니다.");
-        }
-        LocalDateTime today = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
-        if (start.isAfter(today) || end.truncatedTo(ChronoUnit.DAYS).isAfter(today)) {
-            System.out.println("today = " + today);
-            System.out.println("start = " + start);
-            System.out.println("end = " + end);
-            throw new RuntimeException("미래의 주문은 조회할 수 없습니다.");
-        }
+        LocalDateTime[] dateTimes = DateUtil.stringToDateTime(startDate, endDate);
+        LocalDateTime start = dateTimes[0];
+        LocalDateTime end = dateTimes[1];
         
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), 10,
                                                  Sort.by("createTime"));

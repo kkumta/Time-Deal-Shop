@@ -2,6 +2,7 @@ package com.kkumta.timedeal.service.product;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.kkumta.timedeal.api.dto.order.ResponseOrderListDto;
 import com.kkumta.timedeal.api.dto.product.*;
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
@@ -13,6 +14,7 @@ import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import com.kkumta.timedeal.service.user.LoginService;
 import com.kkumta.timedeal.service.user.UserService;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpSession;
@@ -380,6 +382,42 @@ class ProductServiceImplTest {
         });
     }
     
+    @Test
+    @DisplayName("내 상품 목록 조회")
+    void getMyProducts() throws ProductException {
+        
+        // given
+        User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
+                                                      "testtest123", "ADMIN",
+                                                      "01000000000",
+                                                      "객체지향도 Java시 Spring동"));
+        loginService.login(new RequestLoginDto(seller.getEmail(), seller.getPassword()));
+        for (int i = 0; i < 11; i++) {
+            RequestAddProductDto requestAddDto =
+                RequestAddProductDto.builder()
+                    .name("test product")
+                    .price(100000L)
+                    .explanation("test explanation!!\nhihihihi")
+                    .quantity(10L)
+                    .maximumPurchaseQuantity(10L)
+                    .openDate(openDate)
+                    .closeDate(closeDate)
+                    .build();
+            productService.addProduct(requestAddDto);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        String nowToString = now.format(DateTimeFormatter.ofPattern("yyMMdd"));
+        
+        // when
+        Page<ResponseProductListDto> products = productService.getMyProducts(nowToString,
+                                                                             nowToString,
+                                                                             PageRequest.of(0, 1));
+        
+        // then
+        Assertions.assertEquals(11, products.getTotalElements());
+        Assertions.assertEquals(2, products.getTotalPages());
+    }
+    
     private void addProducts() throws ProductException {
         User seller = createUser(new RequestSignUpDto("test name", "test@test.com",
                                                       "testtest123", "ADMIN",
@@ -446,7 +484,6 @@ class ProductServiceImplTest {
             productService.addProduct(requestAddDto);
         }
     }
-    
     
     // 회원 등록
     private User createUser(RequestSignUpDto requestDto) {

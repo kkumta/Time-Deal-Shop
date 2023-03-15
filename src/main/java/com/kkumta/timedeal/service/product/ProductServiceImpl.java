@@ -2,14 +2,19 @@ package com.kkumta.timedeal.service.product;
 
 import static org.springframework.data.domain.Sort.Order.asc;
 
+import com.kkumta.timedeal.api.dto.order.ResponseOrderListDto;
 import com.kkumta.timedeal.api.dto.product.*;
+import com.kkumta.timedeal.domain.order.Order;
 import com.kkumta.timedeal.domain.product.*;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.domain.UserType;
 import com.kkumta.timedeal.exception.product.*;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
+import com.kkumta.timedeal.util.DateUtil;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +52,6 @@ public class ProductServiceImpl implements ProductService {
         if (requestDto.getCloseDate().minusMinutes(10).isBefore(requestDto.getOpenDate())) {
             throw new InvalidDateException();
         }
-        ;
         
         Product product = Product.builder()
             .sellerName(userName.toString())
@@ -184,6 +188,35 @@ public class ProductServiceImpl implements ProductService {
         }
         products = productRepository.findAllByIsDeletedFalseAndIsSellingPausedFalseAndQuantityIsGreaterThanAndOpenDateLessThanEqualAndCloseDateAfter(
             0L, now, now, pageRequest);
+        return products.map(ResponseProductListDto::of);
+    }
+    
+    @Override
+    public Page<ResponseProductListDto> getMyProducts(String startDate,
+                                                      String endDate, Pageable pageable) {
+        
+        Object userName = httpSession.getAttribute("NAME");
+        Object userType = httpSession.getAttribute("TYPE");
+        
+        // 계정 정보 확인
+        if (userName == null || userType == null) {
+            throw new LoginInfoNotFoundException();
+        } else if (!userType.toString().equals("ADMIN")) {
+            throw new InvalidCredentialsException("ADMIN 권한으로 로그인되지 않았습니다.");
+        }
+        
+        // 날짜 정보 확인
+        LocalDateTime[] dateTimes = DateUtil.stringToDateTime(startDate, endDate);
+        LocalDateTime start = dateTimes[0];
+        LocalDateTime end = dateTimes[1];
+        
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), 10,
+                                                 Sort.by("createTime"));
+        
+        Page<Product> products = productRepository.findAllBySellerNameAndCreateTimeBetween(
+            userName.toString(),
+            start, end,
+            pageRequest);
         return products.map(ResponseProductListDto::of);
     }
 }
