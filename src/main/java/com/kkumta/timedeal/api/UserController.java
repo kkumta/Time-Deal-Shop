@@ -1,6 +1,7 @@
 package com.kkumta.timedeal.api;
 
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
+import com.kkumta.timedeal.api.dto.user.ResponseUserDto;
 import com.kkumta.timedeal.exception.user.UserException;
 import com.kkumta.timedeal.service.user.UserService;
 import java.net.URI;
@@ -43,5 +44,10 @@ public class UserController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) throws UserException {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseUserDto> getUserInfo(@PathVariable Long id) throws UserException  {
+        return ResponseEntity.ok(userService.getUserInfo(id));
     }
 }
