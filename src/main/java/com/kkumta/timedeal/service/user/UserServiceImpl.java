@@ -1,5 +1,6 @@
 package com.kkumta.timedeal.service.user;
 
+import com.kkumta.timedeal.api.dto.user.ResponseUserDto;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
@@ -9,6 +10,7 @@ import com.kkumta.timedeal.domain.product.ProductRepository;
 import com.kkumta.timedeal.exception.user.InvalidCredentialsException;
 import com.kkumta.timedeal.exception.user.LoginInfoNotFoundException;
 import com.kkumta.timedeal.exception.user.UserException;
+import com.kkumta.timedeal.exception.user.UserNotFoundException;
 import com.kkumta.timedeal.exception.user.ValidateUniqueEmailException;
 import com.kkumta.timedeal.exception.user.ValidateUniqueNameException;
 import java.util.List;
@@ -97,5 +99,20 @@ public class UserServiceImpl implements UserService {
         }
         
         userRepository.delete(user);
+    }
+    
+    @Override
+    public ResponseUserDto getUserInfo(Long id) throws UserException {
+        
+        String userName = session.getAttribute("NAME").toString();
+        
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new UserNotFoundException());
+        
+        if (!userName.equals(user.getName())) {
+            throw new InvalidCredentialsException("로그인한 User와 정보를 확인하려는 User가 다릅니다.");
+        }
+        
+        return ResponseUserDto.of(user);
     }
 }
