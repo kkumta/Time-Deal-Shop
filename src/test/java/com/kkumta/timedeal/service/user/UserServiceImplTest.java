@@ -2,6 +2,7 @@ package com.kkumta.timedeal.service.user;
 
 import com.kkumta.timedeal.api.dto.product.RequestAddProductDto;
 import com.kkumta.timedeal.api.dto.user.RequestLoginDto;
+import com.kkumta.timedeal.api.dto.user.ResponseUserDto;
 import com.kkumta.timedeal.domain.User;
 import com.kkumta.timedeal.domain.UserRepository;
 import com.kkumta.timedeal.api.dto.user.RequestSignUpDto;
@@ -166,5 +167,27 @@ class UserServiceImplTest {
         // then
         Optional<User> findUser = userRepository.findById(user.getId());
         Assertions.assertEquals(Optional.empty(), findUser);
+    }
+    
+    @Test
+    @DisplayName("회원 정보 조회")
+    void getUserInfo() throws UserException {
+        // given
+        RequestSignUpDto requestSignUpDto = new RequestSignUpDto("test name", "test@test.com",
+                                                                 "testtest123", "ADMIN",
+                                                                 "01000000000",
+                                                                 "객체지향도 Java시 Spring동");
+        User user = userRepository.findById(userService.signUp(requestSignUpDto)).get();
+        loginService.login(new RequestLoginDto(user.getEmail(), user.getPassword()));
+    
+        // when
+        ResponseUserDto responseDto = userService.getUserInfo(user.getId());
+    
+        // then
+        Assertions.assertEquals(requestSignUpDto.getName(), responseDto.getName());
+        Assertions.assertEquals(requestSignUpDto.getEmail(), responseDto.getEmail());
+        Assertions.assertEquals(requestSignUpDto.getType(), responseDto.getType().name());
+        Assertions.assertEquals(requestSignUpDto.getPhoneNumber(), responseDto.getPhoneNumber());
+        Assertions.assertEquals(requestSignUpDto.getAddress(), responseDto.getAddress());
     }
 }
