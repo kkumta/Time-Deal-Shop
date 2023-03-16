@@ -3,3 +3,6 @@
 
 ### [Notion](https://kkumta.notion.site/Time-Deal-Server-39ffac2952894844be044af30cf502cc)
 프로젝트에 대한 설명을 기록해 두었습니다.
+
+### ERD
+![ERD](./documents/ERD.svg)
